@@ -3,6 +3,7 @@ package com.plcoding.cleanarchitecturenoteapp.feature_note.presentation.notes.co
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +36,8 @@ fun NoteItem(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 10.dp,
     cutCornerSize: Dp = 30.dp,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onDuplicateClick: () -> Unit,
 ) {
     Box(
         modifier = modifier
@@ -87,14 +90,21 @@ fun NoteItem(
             )
 
         }
-        IconButton(
-            onClick = onDeleteClick,
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete note"
-            )
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+            IconButton(onClick = onDuplicateClick) {
+                Icon(
+                    imageVector = Icons.Default.FileCopy,
+                    contentDescription = "Duplicate Note"
+                )
+            }
+            IconButton(
+                onClick = onDeleteClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete note"
+                )
+            }
         }
     }
 }

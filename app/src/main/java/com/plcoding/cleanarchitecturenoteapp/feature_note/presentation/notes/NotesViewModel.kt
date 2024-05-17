@@ -4,12 +4,15 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.plcoding.cleanarchitecturenoteapp.feature_note.domain.model.InvalidNoteException
 import com.plcoding.cleanarchitecturenoteapp.feature_note.domain.model.Note
 import com.plcoding.cleanarchitecturenoteapp.feature_note.domain.use_case.NoteUseCases
 import com.plcoding.cleanarchitecturenoteapp.feature_note.domain.util.NoteOrder
 import com.plcoding.cleanarchitecturenoteapp.feature_note.domain.util.OrderType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -26,6 +29,9 @@ class NotesViewModel @Inject constructor(
     private var recentlyDeletedNote: Note? = null
 
     private var getNotesJob: Job? = null
+
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     init {
         getNotes(NoteOrder.Date(OrderType.Descending))
@@ -61,6 +67,28 @@ class NotesViewModel @Inject constructor(
                     isOrderSectionVisible = !state.value.isOrderSectionVisible
                 )
             }
+
+            is NotesEvent.DuplicateNote -> {
+                viewModelScope.launch {
+                    try {
+                        noteUseCases.addNote(
+                            Note(
+                                title = event.note.title,
+                                content = event.note.content,
+                                timestamp = System.currentTimeMillis(),
+                                color = event.note.color,
+                                id = null
+                            )
+                        )
+                    } catch (e: InvalidNoteException) {
+                        _eventFlow.emit(
+                            UiEvent.ShowSnackbar(
+                                message = e.message ?: "Couldn't duplicate note"
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -75,5 +103,9 @@ class NotesViewModel @Inject constructor(
                 )
             }
             .launchIn(viewModelScope)
+    }
+
+    sealed class UiEvent {
+        data class ShowSnackbar(val message: String): UiEvent()
     }
 }

@@ -25,10 +25,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.navigation.NavController
 import com.plcoding.cleanarchitecturenoteapp.feature_note.presentation.notes.components.NoteItem
 import com.plcoding.cleanarchitecturenoteapp.feature_note.presentation.notes.components.OrderSection
 import com.plcoding.cleanarchitecturenoteapp.feature_note.presentation.util.Screen
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -49,6 +51,18 @@ fun NotesScreen(
     val state = viewModel.state.value
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is NotesViewModel.UiEvent.ShowSnackbar -> {
+                    scaffoldState.snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+            }
+        }
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -83,7 +97,7 @@ fun NotesScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Sort,
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
                         contentDescription = "Sort"
                     )
                 }
@@ -127,6 +141,9 @@ fun NotesScreen(
                                     viewModel.onEvent(NotesEvent.RestoreNote)
                                 }
                             }
+                        },
+                        onDuplicateClick = {
+                            viewModel.onEvent(NotesEvent.DuplicateNote(note))
                         }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
